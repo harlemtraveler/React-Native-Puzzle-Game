@@ -72,6 +72,14 @@ export default class Game extends React.Component {
     }, 1000);
   };
 
+  requestTransitionOut = () => {
+    clearInterval(this.intervalId);
+
+    this.setState({
+      transitionState: State.RequestTransitionOut
+    });
+  };
+
   handlePressSquare = square => {
     const { puzzle, onChange } = this.props;
     const { moves } = this.state;
