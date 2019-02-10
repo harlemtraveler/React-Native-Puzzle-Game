@@ -80,6 +80,21 @@ export default class Game extends React.Component {
     });
   };
 
+  handlePressQuit = () => {
+    Alert.alert(
+      'Quit',
+      'Do you want to quit and lose progress on this puzzle?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Quit',
+          style: 'destructive',
+          onPress: this.requestTransitionOut,
+        },
+      ],
+    );
+  };
+
   handlePressSquare = square => {
     const { puzzle, onChange } = this.props;
     const { moves } = this.state;
