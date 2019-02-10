@@ -72,6 +72,17 @@ export default class Game extends React.Component {
     }, 1000);
   };
 
+  handleBoardTransitionOut = async () => {
+    const { onQuit } = this.props;
+
+    await configureTransition(() => {
+      this.setState({
+        transitionState: State.WillTransitionOut
+      });
+    });
+    onQuit();
+  };
+
   requestTransitionOut = () => {
     clearInterval(this.intervalId);
 
