@@ -64,6 +64,14 @@ export default class Game extends React.Component {
     }
   }
 
+  handleBoardTransitionIn = () => {
+    const intervalId = setInterval(() => {
+      const { elapsed } = this.state;
+
+      this.setState({ elapsed: elapsed + 1 });
+    }, 1000);
+  };
+
   handlePressSquare = square => {
     const { puzzle, onChange } = this.props;
     const { moves } = this.state;
