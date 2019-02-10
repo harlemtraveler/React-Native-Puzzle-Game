@@ -128,23 +128,41 @@ export default class Game extends React.Component {
     const { transitionState, moves, elapsed, previousMove } = this.state;
 
     return (
-      <View style={styles.container}>
-        {transitionState === State.LoadingImage && (
-          <ActivityIndicator
-            size={'large'}
-            color={'rgba(255,255,255,0.5)'}
-          />
-        )}
-        {transitionState !== State.LoadingImage && (
-          <View style={styles.centered}>
-            <View style={styles.header}>
-              <Preview image={image} boardSize={size} />
-              <Stats moves={moves} time={elapsed} />
+      transitionState !== State.WillTransitionOut && (
+        <View style={styles.container}>
+          {transitionState === State.LoadingImage && (
+            <ActivityIndicator
+              size={'large'}
+              color={'rgba(255,255,255,0.5)'}
+            />
+          )}
+          {transitionState !== State.LoadingImage && (
+            <View style={styles.centered}>
+              <View style={styles.header}>
+                <Preview image={image} boardSize={size} />
+                <Stats moves={moves} time={elapsed} />
+              </View>
+
+              {/* Puzzle Board */}
+              <Board
+                puzzle={puzzle}
+                image={image}
+                previousMove={previousMove}
+                teardown={transitionState === State.RequestTransitionOut}
+                onMoveSquare={this.handlePressSquare}
+                onTransitionOut={this.handleBoardTransitionOut}
+                onTransitionIn={this.handleBoardTransitionIn}
+              />
+
+              {/* Quit Button */}
+              <Button
+                title={'Quit'}
+                onPress={this.handlePressQuit}
+              />
             </View>
-            {/*...*/}
-          </View>
-        )}
-      </View>
+          )}
+        </View>
+      )
     );
   }
 }
