@@ -18,6 +18,22 @@ export default class Draggable extends React.Component {
     enabled: true,
   };
 
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      dragging: false,
+    };
+
+    this.panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: this.handleStartShouldSetPanResponder,
+      onPanResponderGrant: this.handlePanResponderGrant,
+      onPanResponderMove: handlePanResponderMove,
+      onPanResponderRelease: handlePanResponderEnd,
+      onPanResponderTerminate: handlePanResponderEnd,
+    });
+  }
+
   render() {
     return null;
   }
