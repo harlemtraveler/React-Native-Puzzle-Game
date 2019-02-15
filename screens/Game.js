@@ -51,7 +51,7 @@ export default class Game extends React.Component {
     configureTransition();
   }
 
-  componentWillReceiveProps() {
+  componentWillReceiveProps(nextProps) {
     const { image } = nextProps;
     const { transitionState } = this.state;
 
