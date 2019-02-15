@@ -34,7 +34,57 @@ export default class Draggable extends React.Component {
     });
   }
 
+  handleStartShouldSetPanResponder = () => {
+    const { enabled } = this.props;
+
+    return enabled;
+  };
+
+  // We were granted responder status! Let's update the UI.
+  handlePanResponderGrant = () => {
+    const { onTouchStart } = this.props;
+
+    this.setState({ dragging: true });
+
+    onTouchStart();
+  };
+
+  // When the touch is moves
+  handlePanResponderMove = (e,gestureState) => {
+    const { onTouchMove } = this.props;
+
+    // Keep track of how far we've moved in total (dx and dy).
+    const offset = {
+      top: gestureState.dy,
+      left: gestureState.dx,
+    };
+
+    onTouchMove(offset);
+  };
+
+  // When the touch is lifted
+  handlePanResponderEnd = (e, gestureState) => {
+    const { onTouchMove, onTouchEnd } = this.props;
+
+    const offset = {
+      top: gestureState.dy,
+      left: gestureState.dx,
+    };
+
+    this.setState({ dragging: false });
+
+    onTouchMove(offset);
+    onTouchEnd(offset);
+  };
+
   render() {
-    return null;
+    const { children } = this.props;
+    const { dragging } = this.state;
+
+    // Update children with the state of the drag
+    return children({
+      handlers: this.panResponder.panHandlers,
+      dragging,
+    });
   }
 }
