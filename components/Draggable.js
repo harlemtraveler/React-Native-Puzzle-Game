@@ -28,9 +28,20 @@ export default class Draggable extends React.Component {
     this.panResponder = PanResponder.create({
       onStartShouldSetPanResponder: this.handleStartShouldSetPanResponder,
       onPanResponderGrant: this.handlePanResponderGrant,
-      onPanResponderMove: handlePanResponderMove,
-      onPanResponderRelease: handlePanResponderEnd,
-      onPanResponderTerminate: handlePanResponderEnd,
+      onPanResponderMove: this.handlePanResponderMove,
+      onPanResponderRelease: this.handlePanResponderEnd,
+      onPanResponderTerminate: this.handlePanResponderEnd,
+    });
+  }
+
+  render() {
+    const { children } = this.props;
+    const { dragging } = this.state;
+
+    // Update children with the state of the drag
+    return children({
+      handlers: this.panResponder.panHandlers,
+      dragging,
     });
   }
 
@@ -76,15 +87,4 @@ export default class Draggable extends React.Component {
     onTouchMove(offset);
     onTouchEnd(offset);
   };
-
-  render() {
-    const { children } = this.props;
-    const { dragging } = this.state;
-
-    // Update children with the state of the drag
-    return children({
-      handlers: this.panResponder.panHandlers,
-      dragging,
-    });
-  }
 }
