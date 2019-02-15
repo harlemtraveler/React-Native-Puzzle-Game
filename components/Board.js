@@ -70,6 +70,106 @@ export default class Board extends React.PureComponent {
     onTransitionIn();
   }
 
+  async componentWillReceiveProps(nextProps) {
+    const { previousMove, onTransitionOut, puzzle, teardown } = nextProps;
+
+    const didMovePiece = this.props.puzzle !== puzzle && previousMove !== null;
+
+    if (didMovePiece) {
+      await this.updateSquarePosition(
+        puzzle,
+        previousMove,
+        getIndex(puzzle, previousMove),
+      );
+    }
+  }
+
+  updateSquarePosition(puzzle, square, index) {
+    const { size } = puzzle;
+
+    const { top, left } = calculateItemPosition(size, index);
+
+    const animations = [
+      Animated.spring(this.animatedValues[square].top, {
+        toValue: top,
+        friction: 20,
+        tension: 200,
+        useNativeDriver: true,
+      }),
+      Animated.spring(this.animatedValues[square].left, {
+        toValue: left,
+        friction: 20,
+        tension: 200,
+        useNativeDriver: true,
+      }),
+    ];
+
+    return new Promise(resolve => Animated.parallel(animations).start(resolve));
+  }
+
+  handleTouchStart(square) {
+    Animated.spring(this.animatedValues[square].scale, {
+      toValue: 1.1,
+      friction: 20,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  handleTouchMove(square, index, { top, left }) {
+    const { puzzle, puzzle: { size } } = this.props;
+
+    const itemSize = calculateItemSize(size);
+    const move = availableMove(puzzle, square);
+
+    const { top: initialTop, left: initialLeft } = calculateItemPosition(
+      size,
+      index,
+    );
+
+    const distance = itemSize + itemMargin;
+
+    const clampedTop = clamp(
+      top,
+      move == 'up' ? -distance : 0,
+      move == 'down' ? distance : 0,
+    );
+
+    const clampedLeft = clamp(
+      top,
+      move == 'left' ? -distance : 0,
+      move == 'right' ? distance : 0,
+    );
+
+    this.animatedValues[square].left.setValue(initialLeft + clampedLeft);
+    this.animatedValues[square].top.setValue(initialTop + clampedTop);
+  }
+
+  handleTouchEnd(square, index, { top, left }) {
+    const { puzzle, puzzle: { size }, onMoveSquare } = this.props;
+
+    const itemSize = calculateItemSize(size);
+    const move = availableMove(puzzle, square);
+
+    Animated.spring(this.animatedValues[square].scale, {
+      toValue: 1,
+      friction: 20,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+
+    if (
+      (move === 'up' && top < -itemSize / 2) ||
+      (move === 'down' && top > itemSize / 2) ||
+      (move === 'left' && left < -itemSize / 2) ||
+      (move === 'right' && left > itemSize / 2)
+    ) {
+      onMoveSquare(square);
+    } else {
+      this.updateSquarePosition(puzzle, square, index);
+    }
+  }
+
   renderSquare = (square, index) => {
     const { puzzle: { size, empty }, image } = this.props;
     const { transitionState } = this.state;
@@ -80,7 +180,7 @@ export default class Board extends React.PureComponent {
 
     return (
       <Draggable
-        key={enabled}
+        key={square}
         enabled={transitionState === State.DidTransitionIn}
         onTouchStart={() => this.handleTouchStart(square)}
         onTouchMove={offset => this.handleTouchMove(square, index, offset)}
@@ -93,8 +193,8 @@ export default class Board extends React.PureComponent {
             height: itemSize,
             overflow: 'hidden',
             transform: [
-              { translateX: this.animatedValues[squares].left },
-              { translateY: this.animatedValues[squares].top },
+              { translateX: this.animatedValues[square].left },
+              { translateY: this.animatedValues[square].top },
               { scale: this.animatedValues[square].scale },
             ],
             zIndex: dragging ? 1 : 0,
