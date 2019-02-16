@@ -47,22 +47,25 @@ export default class Board extends React.PureComponent {
 
     const { puzzle: { size, board } } = props;
 
-    // Why is "setState({})" not being used?
     this.state = { transitionState: State.WillTransitionIn };
     this.animatedValues = [];
+
+    const height = Dimensions.get('window').height;
 
     board.forEach((square, index) => {
       const { top, left } = calculateItemPosition(size, index);
 
       this.animatedValues[square] = {
         scale: new Animated.Value(1),
-        top: new Animated.Value(top),
+        top: new Animated.Value(top + height),
         left: new Animated.Value(left),
       };
     });
   }
 
   async componentDidMount() {
+    await this.animateAllSquares(true);
+
     const { onTransitionIn } = this.props;
 
     this.setState({ transitionState: State.DidTransitionIn });
@@ -74,6 +77,7 @@ export default class Board extends React.PureComponent {
     const { previousMove, onTransitionOut, puzzle, teardown } = nextProps;
 
     const didMovePiece = this.props.puzzle !== puzzle && previousMove !== null;
+    const shouldTeardown = !this.props.teardown && teardown;
 
     if (didMovePiece) {
       await this.updateSquarePosition(
@@ -82,6 +86,36 @@ export default class Board extends React.PureComponent {
         getIndex(puzzle, previousMove),
       );
     }
+
+    if (shouldTeardown) {
+      await this.animateAllSquares(false);
+
+      this.setState({
+        transitionState: State.DidTransitionOut,
+      });
+
+      onTransitionOut();
+    }
+  }
+
+  animateAllSquares(visible) {
+    const { puzzle: { board, size } } = this.props;
+
+    const height = Dimensions.get('window').height;
+
+    const animations = board.map((square, index) => {
+      const { top } = calculateItemPosition(size, index);
+
+      return Animated.timing(this.animatedValues[square].top, {
+        toValue: visible ? top : top + height,
+        delay: 800 * (index / board.length),
+        duration: 400,
+        easing: visible ? Easing.out(Easing.ease) : Easing.in(Easing.ease),
+        useNativeDriver: true,
+      });
+    });
+
+    return new Promise(resolve => Animated.parallel(animations).start(resolve));
   }
 
   updateSquarePosition(puzzle, square, index) {
